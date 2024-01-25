@@ -9,8 +9,8 @@
 int main()
 {
     std::vector<double> v;
-    matread("data.mat", v);
-    for (size_t i=0; i<v.size(); ++i)
-        std::cout << v[i] << std::endl;
+    MATFile * mf = matOpen("data.mat", "r");
+    std::cout << "Hello world" << std::endl;
+    matClose(mf);
     return 0;
 }
