@@ -2,6 +2,9 @@
 #include "mat.h"
 #include <iostream>
 #include <vector>
+#include <iostream>
+#include <fstream>
+#include <string>
 
 int main()
 {
