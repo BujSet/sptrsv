@@ -4,6 +4,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <hipsparse/hipsparse.h>
 
 int main(){
     std::ifstream input("mawi_201512020330/mawi_201512020330.mtx");
