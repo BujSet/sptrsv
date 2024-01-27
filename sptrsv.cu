@@ -6,12 +6,20 @@
 #include <cassert>
 #include <sstream>
 #include <stdio.h>
+#include <algorithm>
 
 typedef struct {
     int row;
     int col;
-    int val;
+    float val;
 } Entry_t;
+
+bool compareByRow(const Entry_t *elem1, const Entry_t *elem2 ) {
+    if (elem1->row == elem2->row) {
+        return elem1->col < elem2->col;
+    }
+    return elem1->row < elem2->row;
+}
 
 __global__ void vector_add(float *out, float *a, float *b, int n) {
     int i = threadIdx.x + blockDim.x * threadIdx.y;
@@ -21,7 +29,8 @@ __global__ void vector_add(float *out, float *a, float *b, int n) {
 }
 
 int main(){
-    std::ifstream input("mawi_201512020330/mawi_201512020330.mtx");
+//    std::ifstream input("mawi_201512020330/mawi_201512020330.mtx");
+    std::ifstream input("arc130/arc130.mtx");
     std::string line;
     // Get the first line
     getline(input, line);
@@ -39,33 +48,38 @@ int main(){
     std::cout << "(" << nrows << "," << ncols << ")" << nnz <<std::endl;
 
 
+    int row, col;
+    float val;
+    int count = 0;
+    std::vector<Entry_t*> v;
     // Start parsing the matrix
-//    while(getline( input, line )){
-//	std::stringstream ss(line);
-//	getline(ss, token, ' ');
-//	row = std::stoi(token);
-//	getline(ss, token, ' ');
-//	col = std::stoi(token);
-//	getline(ss, token, ' ');
-//	val = std::stoi(token);
-//	Entry_t *ptr = new Entry_t;
-//	ptr->row =row;
-//	ptr->col = col;
-//	ptr->val = val;
-//	count++;
-//	v.push_back(ptr);
-//	if (row != col) {
-//	    // also need to add in the transpose
-//	    Entry_t *transpose = new Entry_t;
-//	    transpose->row = col;
-//	    transpose->col = row;
-//	    transpose->val = val;
-//	    v.push_back(transpose);
-//	    count++;
-//	}
-//
-//    }
-//    std::cout << "Found " << count << " nnz entries" << std::endl; 
+    while(getline( input, line )){
+	std::stringstream ss(line);
+	getline(ss, token, ' ');
+	row = std::stoi(token);
+	getline(ss, token, ' ');
+	col = std::stoi(token);
+	getline(ss, token, ' ');
+	val = std::stof(token);
+	if (std::abs(val) < 3.959802e-31) {
+	    printf("Skipping value =%f\n", val);
+            continue;
+	}
+	Entry_t *ptr = new Entry_t;
+	ptr->row =row;
+	ptr->col = col;
+	ptr->val = val;
+	count++;
+	v.push_back(ptr);
+    }
+    std::sort(v.begin(), v.end(), &compareByRow);
+    std::cout << "Found " << count << " nnz entries" << std::endl; 
+    for(Entry_t *ptr : v) {
+        std::cout << "(" << ptr->row << "," << ptr->col << ")=" << ptr->val << std::endl;
+    }
+    int *csrRowPtrs = (int*)malloc(sizeof(int)*nnz);
+    int *csrColIdxs = (int*)malloc(sizeof(int)*nnz);
+    float *csrVals = (float*)malloc(sizeof(float)*nnz);
     float *a, *b, *out;
     float *c, *d;
     float *d_a, *d_b, *d_out;
@@ -115,8 +129,14 @@ int main(){
     free(b);
     free(c);
     free(d);
+    free(csrRowPtrs);
+    free(csrColIdxs);
+    free(csrVals);
     free(out);
 
+    for (Entry_t *ptr : v) {
+        delete ptr;
+    }
     std::cout << "End of program" <<std::endl;
     return 0;
 }
