@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cassert>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -33,6 +34,7 @@ MatrixLoader::MatrixLoader(std::string filePath, float zero_thresh) {
     int count = 0;
     int row, col;
     float val;
+    this->v.reserve(nentries);
     // Start parsing the matrix
     while(getline(input, line)){
         std::stringstream ss(line);
@@ -56,12 +58,20 @@ MatrixLoader::MatrixLoader(std::string filePath, float zero_thresh) {
     std::sort(this->v.begin(), this->v.end(), &_compareByRow);
     input.clear();
     input.seekg(0);
+    // Now convert to CSR format.
+    this->csrRowPtrs = (int*)malloc(sizeof(int) * (nrows + 1));
+    this->csrColIdxs = (int*)malloc(sizeof(int) * count);
+    this->csrVals = (float*)malloc(sizeof(float) * count);
+    assert(this->v.size() == count);
 }
 
 MatrixLoader::~MatrixLoader() {
     for (Entry_t *ptr : this->v) {
         delete ptr;
     }
+    free(this->csrRowPtrs);
+    free(this->csrColIdxs);
+    free(this->csrVals);
 }
 
 void MatrixLoader::printConfigs() const {

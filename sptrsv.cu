@@ -18,9 +18,6 @@ __global__ void vector_add(float *out, float *a, float *b, int n) {
 int main(){
     MatrixLoader *myld = new MatrixLoader("arc130/arc130.mtx", 3.959802e-31);
     myld->printConfigs();
-    int *csrRowPtrs = (int*)malloc(sizeof(int)*myld->get_num_entries());
-    int *csrColIdxs = (int*)malloc(sizeof(int)*myld->get_num_entries());
-    float *csrVals = (float*)malloc(sizeof(float)*myld->get_num_entries());
     float *a, *b, *out;
     float *d_a, *d_b, *d_out;
 
@@ -57,9 +54,6 @@ int main(){
     cudaFree(d_out);
     free(a);
     free(b);
-    free(csrRowPtrs);
-    free(csrColIdxs);
-    free(csrVals);
     free(out);
 
     delete myld;

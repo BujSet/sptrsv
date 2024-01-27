@@ -22,6 +22,11 @@ private:
     int nnz;
     // Storage filled in from file directly
     std::vector<Entry_t*> v;
+    
+    int *csrRowPtrs;
+    int *csrColIdxs;
+    float *csrVals;
+
 
 public:
     MatrixLoader(std::string filePath, float zero_thresh);
