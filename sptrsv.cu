@@ -87,13 +87,16 @@ int main(){
         printf("a=%f,b=%f\n", a[i], b[i]);
     }
 
+    cudaError_t result;
     // Allocate device memory for a
-    assert(cudaMalloc((void**)&d_a, sizeof(float) * N));
+    result = cudaMalloc((void**)&d_a, sizeof(float) * N);
+    assert(result == cudaSuccess);
     cudaMalloc((void**)&d_b, sizeof(float) * N);
     cudaMalloc((void**)&d_out, sizeof(float) * N);
 
     // Transfer data from host to device memory
-    assert(cudaMemcpy(d_a, a, sizeof(float) * N, cudaMemcpyHostToDevice));
+    result = cudaMemcpy(d_a, a, sizeof(float) * N, cudaMemcpyHostToDevice);
+    assert(result == cudaSuccess);
     cudaMemcpy(d_b, b, sizeof(float) * N, cudaMemcpyHostToDevice);
     cudaMemcpy(c, d_a, sizeof(float) * N, cudaMemcpyDeviceToHost);
     cudaMemcpy(d, d_b, sizeof(float) * N, cudaMemcpyDeviceToHost);
