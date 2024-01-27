@@ -24,7 +24,8 @@ public:
     MatrixLoader(std::string filePath, float zero_thresh);
     ~MatrixLoader();
 
-    printConfigs() const;
+    void printConfigs() const;
+
 };
 
 

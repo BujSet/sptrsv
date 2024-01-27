@@ -7,6 +7,13 @@
 
 #include "MatrixLoader.hpp"
 
+bool _compareByRow(const Entry_t *elem1, const Entry_t *elem2 ) {
+    if (elem1->row == elem2->row) {
+        return elem1->col < elem2->col;
+    }
+    return elem1->row < elem2->row;
+}
+
 MatrixLoader::MatrixLoader(std::string filePath, float zero_thresh) {
     std::ifstream input(filePath);
     std::string line;
@@ -22,10 +29,12 @@ MatrixLoader::MatrixLoader(std::string filePath, float zero_thresh) {
     int ncols = std::stoi(token);
     getline(stream, token, ' ');
     int nentries  = std::stoi(token);
-    this.nrows = nrows;
-    this.ncols = ncols;
-    this.nentries = nentries;
+    this->nrows = nrows;
+    this->ncols = ncols;
+    this->nentries = nentries;
     int count = 0;
+    int row, col;
+    float val;
     std::vector<Entry_t*> v;
     // Start parsing the matrix
     while(getline(input, line)){
@@ -46,17 +55,15 @@ MatrixLoader::MatrixLoader(std::string filePath, float zero_thresh) {
 	    count++;
 	    v.push_back(ptr);
     }
-    this.nnz = count;
-    std::sort(v.begin(), v.end(), &compareByRow);
-
-    std::cout << "(" << nrows << "," << ncols << ")" << nnz <<std::endl;
-
-
+    this->nnz = count;
+    std::sort(v.begin(), v.end(), &_compareByRow);
 }
 
 MatrixLoader::~MatrixLoader() {
 
 }
-MatrixLoader::printConfigs() const {
+
+void MatrixLoader::printConfigs() const {
+    std::cout << "(" << nrows << "," << ncols << ")" << nnz <<std::endl;
 
 }

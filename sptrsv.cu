@@ -41,9 +41,6 @@ int main(){
 
     std::cout << "(" << nrows << "," << ncols << ")" << nnz <<std::endl;
 
-    MatrixLoader *myld = new MatrixLoader("arc130/arc130.mtx", 3.959802e-31);
-
-
     int row, col;
     float val;
     int count = 0;
@@ -70,6 +67,9 @@ int main(){
     }
     std::sort(v.begin(), v.end(), &compareByRow);
     std::cout << "Found " << count << " nnz entries" << std::endl; 
+    input.clear();
+    input.seekg(0);
+    MatrixLoader *myld = new MatrixLoader("arc130/arc130.mtx", 3.959802e-31);
     for(Entry_t *ptr : v) {
         std::cout << "(" << ptr->row << "," << ptr->col << ")=" << ptr->val << std::endl;
     }
