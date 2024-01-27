@@ -4,13 +4,19 @@
 #include <fstream>
 #include <string>
 #include <sstream>
-#include <hipsparse/hipsparse.h>
+//#include <hipsparse/hipsparse.h>
+#include <stdio.h>
 
 typedef struct {
     int row;
     int col;
     int val;
 } Entry_t;
+
+
+__global__ void helloCUDA() {
+    printf("Hello, CUDA!\n");
+}
 
 int main(){
     std::ifstream input("mawi_201512020330/mawi_201512020330.mtx");
@@ -30,11 +36,8 @@ int main(){
 
     std::cout << "(" << nrows << "," << ncols << ")" << nnz <<std::endl;
 
-    std::vector<Entry_t*> v;
-    v.reserve(2*nnz); // Sparse matrix is symmetric
-
-    int row, col;
-    int val;
+//    int row, col;
+//    int val;
 //    int count = 0;
 
     // Start parsing the matrix
@@ -64,13 +67,7 @@ int main(){
 //
 //    }
 //    std::cout << "Found " << count << " nnz entries" << std::endl; 
-    hipsparseHandle_t handle;
-    hipsparseStatus_t stat;
-    std::cout << "Creating handle" << std::endl; 
-    stat = hipsparseCreate(&handle);
-    assert(stat == HIPSPARSE_STATUS_SUCCESS);
-
-    stat = hipsparseDestroy(&handle);
-    assert(stat == HIPSPARSE_STATUS_SUCCESS);
+    helloCUDA<<<1, 1>>>();
+    cudaDeviceSynchronize();
     return 0;
 }
