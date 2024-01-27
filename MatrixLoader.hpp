@@ -1,4 +1,5 @@
 #include <string>
+#include <vector>
 
 #ifndef __MATRIX_LOADER_HPP__
 #define __MATRIX_LOADER_HPP__
@@ -19,12 +20,15 @@ private:
     int nentries;
     // Number of non-zero entries in the matrix
     int nnz;
+    // Storage filled in from file directly
+    std::vector<Entry_t*> v;
 
 public:
     MatrixLoader(std::string filePath, float zero_thresh);
     ~MatrixLoader();
 
     void printConfigs() const;
+    int get_num_entries() const { return this->nentries; }
 
 };
 

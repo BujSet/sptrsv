@@ -3,7 +3,6 @@
 #include <fstream>
 #include <sstream>
 #include <stdio.h>
-#include <vector>
 
 #include "MatrixLoader.hpp"
 
@@ -19,7 +18,6 @@ MatrixLoader::MatrixLoader(std::string filePath, float zero_thresh) {
     std::string line;
     // Get the first line
     getline(input, line);
-    std::cout << line << std::endl;
     std::stringstream stream(line);
     std::string token;
 
@@ -35,17 +33,16 @@ MatrixLoader::MatrixLoader(std::string filePath, float zero_thresh) {
     int count = 0;
     int row, col;
     float val;
-    std::vector<Entry_t*> v;
     // Start parsing the matrix
     while(getline(input, line)){
-	    std::stringstream ss(line);
-	    getline(ss, token, ' ');
+        std::stringstream ss(line);
+        getline(ss, token, ' ');
 	    row = std::stoi(token);
 	    getline(ss, token, ' ');
 	    col = std::stoi(token);
 	    getline(ss, token, ' ');
 	    val = std::stof(token);
-	    if (std::abs(val) < zero_thresh) {
+        if (std::abs(val) < zero_thresh) {
             continue;
 	    }
 	    Entry_t *ptr = new Entry_t;
@@ -53,17 +50,21 @@ MatrixLoader::MatrixLoader(std::string filePath, float zero_thresh) {
 	    ptr->col = col;
 	    ptr->val = val;
 	    count++;
-	    v.push_back(ptr);
+	    this->v.push_back(ptr);
     }
     this->nnz = count;
-    std::sort(v.begin(), v.end(), &_compareByRow);
+    std::sort(this->v.begin(), this->v.end(), &_compareByRow);
+    input.clear();
+    input.seekg(0);
 }
 
 MatrixLoader::~MatrixLoader() {
-
+    for (Entry_t *ptr : this->v) {
+        delete ptr;
+    }
 }
 
 void MatrixLoader::printConfigs() const {
-    std::cout << "(" << nrows << "," << ncols << ")" << nnz <<std::endl;
+    std::cout << "Matrix: (" << nrows << "," << ncols << ") with " << nnz << " non zero entries" << std::endl;
 
 }
