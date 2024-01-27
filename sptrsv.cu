@@ -17,6 +17,11 @@ typedef struct {
 __global__ void helloCUDA() {
     printf("Hello, CUDA!\n");
 }
+__global__ void vector_add(float *out, float *a, float *b, int n) {
+    for(int i = 0; i < n; i++){
+        out[i] = a[i] + b[i];
+    }
+}
 
 int main(){
     std::ifstream input("mawi_201512020330/mawi_201512020330.mtx");
@@ -69,5 +74,38 @@ int main(){
 //    std::cout << "Found " << count << " nnz entries" << std::endl; 
     helloCUDA<<<1, 1>>>();
     cudaDeviceSynchronize();
+    float *a, *b, *out;
+    float *d_a, *d_out;
+
+    int N = 10;
+
+    a = (float*)malloc(sizeof(float) * N);
+    b   = (float*)malloc(sizeof(float) * N);
+    out = (float*)malloc(sizeof(float) * N);
+
+    // Initialize array
+    for(int i = 0; i < N; i++){
+        a[i] = i*1.0f; 
+	b[i] = i*2.0f;
+    }
+
+    // Allocate device memory for a
+    cudaMalloc((void**)&d_a, sizeof(float) * N);
+    cudaMalloc((void**)&d_out, sizeof(float) * N);
+
+    // Transfer data from host to device memory
+    cudaMemcpy(d_a, a, sizeof(float) * N, cudaMemcpyHostToDevice);
+    vector_add<<<1,1>>>(out, d_a, b, N);
+    cudaMemcpy(d_out, out, sizeof(float) * N, cudaMemcpyDeviceToHost);
+    for (int i = 0; i < N; i++){
+        std::cout << a[i] << "+" << b[i] << "=" << out[i] << std::endl;
+    }
+    cudaFree(d_a);
+    cudaFree(d_out);
+    free(a);
+    free(b);
+    free(out);
+
+    std::cout << "End of program" <<std::endl;
     return 0;
 }
