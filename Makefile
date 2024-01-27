@@ -1,6 +1,6 @@
 
 compile: 
-	nvcc -O3 sptrsv.cu -o sptrsv
+	hipcc -O3 sptrsv.cu -o sptrsv
 
 clean: 
 	rm -f sptrsv
