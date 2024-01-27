@@ -3,8 +3,8 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <cassert>
 #include <sstream>
-//#include <hipsparse/hipsparse.h>
 #include <stdio.h>
 
 typedef struct {
@@ -13,13 +13,10 @@ typedef struct {
     int val;
 } Entry_t;
 
-
-__global__ void helloCUDA() {
-    printf("Hello, CUDA!\n");
-}
 __global__ void vector_add(float *out, float *a, float *b, int n) {
-    for(int i = 0; i < n; i++){
-        out[i] = a[i] + b[i];
+    int i = threadIdx.x + blockDim.x * threadIdx.y;
+    if (i < n) {
+        out[i] = a[i] + b[i]; 
     }
 }
 
@@ -41,9 +38,6 @@ int main(){
 
     std::cout << "(" << nrows << "," << ncols << ")" << nnz <<std::endl;
 
-//    int row, col;
-//    int val;
-//    int count = 0;
 
     // Start parsing the matrix
 //    while(getline( input, line )){
@@ -72,15 +66,16 @@ int main(){
 //
 //    }
 //    std::cout << "Found " << count << " nnz entries" << std::endl; 
-    helloCUDA<<<1, 1>>>();
-    cudaDeviceSynchronize();
     float *a, *b, *out;
-    float *d_a, *d_out;
+    float *c, *d;
+    float *d_a, *d_b, *d_out;
 
     int N = 10;
 
     a = (float*)malloc(sizeof(float) * N);
     b   = (float*)malloc(sizeof(float) * N);
+    c = (float*)malloc(sizeof(float) * N);
+    d   = (float*)malloc(sizeof(float) * N);
     out = (float*)malloc(sizeof(float) * N);
 
     // Initialize array
@@ -88,22 +83,35 @@ int main(){
         a[i] = i*1.0f; 
 	b[i] = i*2.0f;
     }
+    for(int i = 0; i < N; i++){
+        printf("a=%f,b=%f\n", a[i], b[i]);
+    }
 
     // Allocate device memory for a
-    cudaMalloc((void**)&d_a, sizeof(float) * N);
+    assert(cudaMalloc((void**)&d_a, sizeof(float) * N));
+    cudaMalloc((void**)&d_b, sizeof(float) * N);
     cudaMalloc((void**)&d_out, sizeof(float) * N);
 
     // Transfer data from host to device memory
-    cudaMemcpy(d_a, a, sizeof(float) * N, cudaMemcpyHostToDevice);
-    vector_add<<<1,1>>>(out, d_a, b, N);
-    cudaMemcpy(d_out, out, sizeof(float) * N, cudaMemcpyDeviceToHost);
+    assert(cudaMemcpy(d_a, a, sizeof(float) * N, cudaMemcpyHostToDevice));
+    cudaMemcpy(d_b, b, sizeof(float) * N, cudaMemcpyHostToDevice);
+    cudaMemcpy(c, d_a, sizeof(float) * N, cudaMemcpyDeviceToHost);
+    cudaMemcpy(d, d_b, sizeof(float) * N, cudaMemcpyDeviceToHost);
+    for(int i = 0; i < N; i++){
+        printf("c=%f,d=%f\n", c[i], d[i]);
+    }
+    vector_add<<<1,256>>>(d_out, d_a, d_b, N);
+    cudaMemcpy(out, d_out, sizeof(float) * N, cudaMemcpyDeviceToHost);
     for (int i = 0; i < N; i++){
         std::cout << a[i] << "+" << b[i] << "=" << out[i] << std::endl;
     }
     cudaFree(d_a);
+    cudaFree(d_b);
     cudaFree(d_out);
     free(a);
     free(b);
+    free(c);
+    free(d);
     free(out);
 
     std::cout << "End of program" <<std::endl;
