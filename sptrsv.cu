@@ -1,18 +1,12 @@
 #include <iostream>
 #include <vector>
-#include <iostream>
 #include <fstream>
 #include <string>
 #include <cassert>
 #include <sstream>
 #include <stdio.h>
 #include <algorithm>
-
-typedef struct {
-    int row;
-    int col;
-    float val;
-} Entry_t;
+#include "MatrixLoader.hpp"
 
 bool compareByRow(const Entry_t *elem1, const Entry_t *elem2 ) {
     if (elem1->row == elem2->row) {
@@ -46,6 +40,8 @@ int main(){
     int nnz  = std::stoi(token);
 
     std::cout << "(" << nrows << "," << ncols << ")" << nnz <<std::endl;
+
+    MatrixLoader *myld = new MatrixLoader("arc130/arc130.mtx", 3.959802e-31);
 
 
     int row, col;
@@ -137,6 +133,7 @@ int main(){
     for (Entry_t *ptr : v) {
         delete ptr;
     }
+    delete myld;
     std::cout << "End of program" <<std::endl;
     return 0;
 }
