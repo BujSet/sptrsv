@@ -7,6 +7,10 @@
 #include <stdio.h>
 #include <algorithm>
 #include "MatrixLoader.hpp"
+#include <hip/hip_runtime.h>
+#include <hsa/hsa.h>
+#include <hsa/hsa_ext_amd.h>
+#include "check_err.h"
 
 __global__ void vector_add(float *out, float *a, float *b, int n) {
     int i = threadIdx.x + blockDim.x * threadIdx.y;
@@ -16,8 +20,8 @@ __global__ void vector_add(float *out, float *a, float *b, int n) {
 }
 
 int main(){
-    MatrixLoader *myld = new MatrixLoader("arc130/arc130.mtx", 3.959802e-31);
-    myld->printConfigs();
+    //MatrixLoader *myld = new MatrixLoader("arc130/arc130.mtx", 3.959802e-31);
+    //myld->printConfigs();
     float *a, *b, *out;
     float *d_a, *d_b, *d_out;
 
@@ -33,30 +37,27 @@ int main(){
 	b[i] = i*2.0f;
     }
 
-    cudaError_t result;
     // Allocate device memory for a
-    result = cudaMalloc((void**)&d_a, sizeof(float) * N);
-    assert(result == cudaSuccess);
-    cudaMalloc((void**)&d_b, sizeof(float) * N);
-    cudaMalloc((void**)&d_out, sizeof(float) * N);
+    CHECK_HIP_ERROR(hipMalloc((void**)&d_a, sizeof(float) * N));
+    CHECK_HIP_ERROR(hipMalloc((void**)&d_b, sizeof(float) * N));
+    CHECK_HIP_ERROR(hipMalloc((void**)&d_out, sizeof(float) * N));
 
     // Transfer data from host to device memory
-    result = cudaMemcpy(d_a, a, sizeof(float) * N, cudaMemcpyHostToDevice);
-    assert(result == cudaSuccess);
-    cudaMemcpy(d_b, b, sizeof(float) * N, cudaMemcpyHostToDevice);
-    vector_add<<<1,256>>>(d_out, d_a, d_b, N);
-    cudaMemcpy(out, d_out, sizeof(float) * N, cudaMemcpyDeviceToHost);
+    CHECK_HIP_ERROR(hipMemcpy(d_a, a, sizeof(float) * N, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(d_b, b, sizeof(float) * N, hipMemcpyHostToDevice));
+    hipLaunchKernelGGL(vector_add, 1, 256, 0, 0, d_out, d_a, d_b, N);
+    CHECK_HIP_ERROR(hipMemcpy(out, d_out, sizeof(float) * N, hipMemcpyDeviceToHost));
     for (int i = 0; i < N; i++){
         std::cout << a[i] << "+" << b[i] << "=" << out[i] << std::endl;
     }
-    cudaFree(d_a);
-    cudaFree(d_b);
-    cudaFree(d_out);
+    CHECK_HIP_ERROR(hipFree(d_a));
+    CHECK_HIP_ERROR(hipFree(d_b));
+    CHECK_HIP_ERROR(hipFree(d_out));
     free(a);
     free(b);
     free(out);
 
-    delete myld;
+    //delete myld;
     std::cout << "End of program" <<std::endl;
     return 0;
 }
